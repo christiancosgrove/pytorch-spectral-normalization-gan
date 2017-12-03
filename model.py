@@ -1,24 +1,27 @@
 from torch import nn
 import torch.nn.functional as F
 
+width = 28
+h_dim = 100
+z_dim = 100
+
 class Generator(nn.Module):
-    def __init(self):
-        print('hi')
+    def __init__(self, z_dim):
+        super(Generator, self).__init__()
+        self.z_dim = z_dim
+        self.fc1 = nn.Linear(z_dim, h_dim)
+        self.fc2 = nn.Linear(h_dim, width * width)
+
+    def forward(self, z):
+        return nn.Tanh()(self.fc2(F.relu(self.fc1(z))).view(-1, width, width))
 
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.conv2_drop = nn.Dropout2d()
-        self.fc1 = nn.Linear(320, 50)
-        self.fc2 = nn.Linear(50, 10)
+        self.fc1 = nn.Linear(width * width, h_dim)
+        self.fc2 = nn.Linear(h_dim, 1)
+
 
     def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        x = x.view(-1, 320)
-        x = F.relu(self.fc1(x))
-        x = F.dropout(x, training=self.training)
-        x = self.fc2(x)
-        return F.log_softmax(x)
+        shaped = x.view(-1, width * width)
+        return nn.Sigmoid()(self.fc2(F.relu(self.fc1(shaped))))
