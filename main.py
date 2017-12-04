@@ -6,10 +6,11 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 from model import Discriminator, Generator
+from spectral_normalization import SpectralNormOptimizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--lr', type=float, default=1e-3)
+parser.add_argument('--lr', type=float, default=1e-2)
 parser.add_argument('--momentum', type=float, default=0.5)
 args = parser.parse_args()
 
@@ -24,8 +25,8 @@ Z_dim = 100
 discriminator = Discriminator().cuda()
 generator = Generator(Z_dim).cuda()
 
-optim_disc = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.momentum,0.999))
-optim_gen  = optim.Adam(generator.parameters(), lr=args.lr, betas=(args.momentum,0.999))
+optim_disc = SpectralNormOptimizer(discriminator.parameters(), lr=args.lr)
+optim_gen  = SpectralNormOptimizer(generator.parameters(), lr=args.lr)
 
 def train(epoch):
     discriminator.train()
@@ -49,7 +50,7 @@ def train(epoch):
         gen_loss.backward()
         optim_gen.step()
 
-        if batch_idx % 10 == 0:
+        if batch_idx % 100 == 0:
             print('disc loss', disc_loss.data[0], 'gen loss', gen_loss.data[0])
 
 import numpy as np
@@ -73,7 +74,7 @@ def evaluate(epoch):
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_aspect('equal')
-        plt.imshow(sample.reshape(28, 28), cmap='Greys_r')
+        plt.imshow(sample.reshape(28, 28) * 0.5 + 0.5, cmap='Greys_r')
 
     if not os.path.exists('out/'):
         os.makedirs('out/')

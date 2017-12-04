@@ -1,6 +1,8 @@
 from torch import nn
 import torch.nn.functional as F
 
+from spectral_normalization import SpectralNormLinear
+
 width = 28
 h_dim = 100
 z_dim = 100
@@ -18,10 +20,11 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.fc1 = nn.Linear(width * width, h_dim)
-        self.fc2 = nn.Linear(h_dim, 1)
+        self.fc1 = SpectralNormLinear(width * width, h_dim)
+        self.fc2 = SpectralNormLinear(h_dim, 1)
 
 
     def forward(self, x):
         shaped = x.view(-1, width * width)
         return nn.Sigmoid()(self.fc2(F.relu(self.fc1(shaped))))
+
