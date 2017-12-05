@@ -3,6 +3,7 @@ from torch.optim.optimizer import Optimizer, required
 
 from torch.autograd import Variable
 import torch.nn.functional as F
+from torch import nn
 
 
 class SpectralNormOptimizer(Optimizer):
@@ -44,17 +45,17 @@ def spectral_norm(W, u=None, power_iterations=1):
 	singular_value = torch.dot(u_n, prod)
 	return singular_value, u_n, v_n
 
-from torch import nn
+class SpectralNorm(nn.Module):
+    def __init__(self, module):
+        super(SpectralNorm, self).__init__()
+        self.module = module
+        self.u = None
 
-class SpectralNormLinear(nn.Linear):
-	def __init__(self, in_size, out_size):
-		self.u = None
-		super(SpectralNormLinear, self).__init__(in_size, out_size)
+    def _setweights(self):
+        singular_value, u, _ = spectral_norm(self.module.weight, self.u)
+        self.module.weight.data = self.module.weight.data / singular_value
+        self.u = u
 
-	def W_bar(self):
-		singular_value, u_n, _ = spectral_norm(self.weight, self.u)
-		self.u = u_n
-		return self.weight / singular_value
-
-	def forward(self, x):
-		return F.linear(x, self.W_bar(), self.bias)
+    def forward(self, *args):
+        self._setweights()
+        return self.module.forward(*args)

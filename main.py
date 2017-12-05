@@ -10,14 +10,15 @@ from spectral_normalization import SpectralNormOptimizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--lr', type=float, default=1e-2)
+parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--momentum', type=float, default=0.5)
 args = parser.parse_args()
 
 loader = torch.utils.data.DataLoader(
     datasets.MNIST('../data/', train=True, download=True,
         transform=transforms.Compose([
-            transforms.ToTensor()])),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,),(0.5,))])),
         batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
 
 Z_dim = 100
@@ -25,8 +26,8 @@ Z_dim = 100
 discriminator = Discriminator().cuda()
 generator = Generator(Z_dim).cuda()
 
-optim_disc = SpectralNormOptimizer(discriminator.parameters(), lr=args.lr)
-optim_gen  = SpectralNormOptimizer(generator.parameters(), lr=args.lr)
+optim_disc = optim.Adam(discriminator.parameters(), lr=args.lr)
+optim_gen  = optim.Adam(generator.parameters(), lr=args.lr)
 
 def train(epoch):
     discriminator.train()
@@ -61,11 +62,11 @@ import os
 def evaluate(epoch):
     z = Variable(torch.randn(args.batch_size, Z_dim).cuda())
 
-    samples = generator(z).cpu().data.numpy()[:16]
+    samples = generator(z).cpu().data.numpy()[:64]
 
 
-    fig = plt.figure(figsize=(4, 4))
-    gs = gridspec.GridSpec(4, 4)
+    fig = plt.figure(figsize=(8, 8))
+    gs = gridspec.GridSpec(8, 8)
     gs.update(wspace=0.05, hspace=0.05)
 
     for i, sample in enumerate(samples):
