@@ -6,3 +6,7 @@ By (anonymous) https://openreview.net/forum?id=B1QRgziT-
 
 ## Without (24 epochs)
 ![without spectral normalization](https://github.com/christiancosgrove/pytorch-spectral-normalization-gan/blob/master/without_sn.png?raw=true)
+
+
+todo list:
+1. implement CIFAR-10 model
