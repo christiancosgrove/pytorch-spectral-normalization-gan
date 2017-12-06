@@ -35,6 +35,14 @@ class Discriminator(nn.Module):
             SpectralNorm(nn.Linear(h_dim, 1)),
             )
 
+        # self.model = nn.Sequential(
+        #     (nn.Linear(width * width, h_dim)),
+        #     nn.LeakyReLU(),
+        #     (nn.Linear(h_dim, h_dim)),
+        #     nn.LeakyReLU(),
+        #     (nn.Linear(h_dim, 1)),
+        #     )
+
 
     def forward(self, x):
         shaped = x.view(-1, width * width)
