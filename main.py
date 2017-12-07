@@ -14,20 +14,26 @@ parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--momentum', type=float, default=0.5)
 args = parser.parse_args()
 
+# loader = torch.utils.data.DataLoader(
+#     datasets.MNIST('../data/', train=True, download=True,
+#         transform=transforms.Compose([
+#             transforms.ToTensor(),
+#             transforms.Normalize((0.5,),(0.5,))])),
+#         batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
 loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data/', train=True, download=True,
+    datasets.CIFAR10('../data/', train=True, download=True,
         transform=transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.5,),(0.5,))])),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])),
         batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
 
-Z_dim = 100
+Z_dim = 128
 
 discriminator = Discriminator().cuda()
 generator = Generator(Z_dim).cuda()
 
-optim_disc = optim.Adam(discriminator.parameters(), lr=args.lr)
-optim_gen  = optim.Adam(generator.parameters(), lr=args.lr)
+optim_disc = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.5,0.999))
+optim_gen  = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.5,0.999))
 
 def train(epoch):
     discriminator.train()
@@ -59,10 +65,10 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import os
 
+fixed_z = Variable(torch.randn(args.batch_size, Z_dim).cuda())
 def evaluate(epoch):
-    z = Variable(torch.randn(args.batch_size, Z_dim).cuda())
 
-    samples = generator(z).cpu().data.numpy()[:64]
+    samples = generator(fixed_z).cpu().data.numpy()[:64]
 
 
     fig = plt.figure(figsize=(8, 8))
@@ -75,13 +81,13 @@ def evaluate(epoch):
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_aspect('equal')
-        plt.imshow(sample.reshape(28, 28) * 0.5 + 0.5, cmap='Greys_r')
+        plt.imshow(sample.transpose((1,2,0)) * 0.5 + 0.5)
 
     if not os.path.exists('out/'):
         os.makedirs('out/')
 
     plt.savefig('out/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
 
-for epoch in range(100):
+for epoch in range(2000):
     train(epoch)
     evaluate(epoch)
