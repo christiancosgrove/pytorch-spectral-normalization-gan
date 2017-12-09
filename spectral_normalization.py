@@ -4,7 +4,7 @@ from torch.optim.optimizer import Optimizer, required
 from torch.autograd import Variable
 import torch.nn.functional as F
 from torch import nn
-
+from torch import Tensor
 
 class SpectralNormOptimizer(Optimizer):
 
@@ -37,10 +37,6 @@ def spectral_norm(W, u=None, power_iterations=1):
 	#filter height and width
 
 	height = W.data.shape[0]
-	width = W.data.shape[1]
-	if len(W.data.shape) > 2:
-		width = W.data.shape[1] * W.data.shape[2] * W.data.shape[3]
-	
 	u_n = u
 	for i in range(power_iterations):
 		v_n = F.normalize(torch.mv(torch.t(W.view(height,-1).data), u_n), p=2, dim=0)
@@ -54,10 +50,12 @@ class SpectralNorm(nn.Module):
     def __init__(self, module):
         super(SpectralNorm, self).__init__()
         self.module = module
-        self.u = Variable(self.module.weight.data.new((self.module.weight.data.shape[0]))).cuda().data.normal_(0,1)
-
+        self.u = None
 
     def _setweights(self):
+        if self.u is None:
+            self.u = self.module.weight.data.new(self.module.weight.size()[0]).normal_(0,1)
+        
         singular_value, u, _ = spectral_norm(self.module.weight, self.u)
         self.module.weight.data = self.module.weight.data / singular_value
         self.u = u
