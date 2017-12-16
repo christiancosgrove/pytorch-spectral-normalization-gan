@@ -10,7 +10,7 @@ from spectral_normalization import SpectralNormOptimizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--lr', type=float, default=1e-4)
+parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--momentum', type=float, default=0.5)
 args = parser.parse_args()
 
@@ -32,8 +32,11 @@ Z_dim = 128
 discriminator = Discriminator().cuda()
 generator = Generator(Z_dim).cuda()
 
-optim_disc = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.5,0.999))
+optim_disc = optim.Adam(filter(lambda p: p.requires_grad, discriminator.parameters()), lr=args.lr, betas=(0.5,0.999))
 optim_gen  = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.5,0.999))
+
+# optim_disc = optim.SGD(filter(lambda p: p.requires_grad, discriminator.parameters()), lr=args.lr)
+# optim_gen  = optim.SGD(generator.parameters(), lr=args.lr)
 
 def train(epoch):
     discriminator.train()
@@ -42,13 +45,9 @@ def train(epoch):
             continue
         data, target = Variable(data.cuda()), Variable(target.cuda())
         z = Variable(torch.randn(args.batch_size, Z_dim).cuda())
-        optim_disc.zero_grad()
-        optim_gen.zero_grad()
-        output = discriminator(data)
-
         disc_loss = nn.BCEWithLogitsLoss()(discriminator(data), Variable(torch.ones(args.batch_size, 1).cuda())) + \
             nn.BCEWithLogitsLoss()(discriminator(generator(z)), Variable(torch.zeros(args.batch_size, 1).cuda()))
-        disc_loss.backward(retain_graph=True)
+        disc_loss.backward()
         optim_disc.step()
 
         optim_disc.zero_grad()
@@ -87,6 +86,7 @@ def evaluate(epoch):
         os.makedirs('out/')
 
     plt.savefig('out/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
+    plt.close(fig)
 
 for epoch in range(2000):
     train(epoch)

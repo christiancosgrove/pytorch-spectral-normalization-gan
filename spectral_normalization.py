@@ -5,6 +5,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torch import nn
 from torch import Tensor
+from torch.nn import Parameter
 
 class SpectralNormOptimizer(Optimizer):
 
@@ -30,36 +31,57 @@ class SpectralNormOptimizer(Optimizer):
 		return loss
 
 
-#approximates the spectral norm (maximum singular value) of W
-#uses power iteration method
-def spectral_norm(W, u=None, power_iterations=1):
 
-	#filter height and width
+def l2normalize(v, eps=1e-12):
+    return v / (v.norm() + eps)
 
-	height = W.data.shape[0]
-	u_n = u
-	for i in range(power_iterations):
-		v_n = F.normalize(torch.mv(torch.t(W.view(height,-1).data), u_n), p=2, dim=0)
-		u_n = F.normalize(torch.mv(W.view(height,-1).data, v_n), p=2, dim=0)
-
-	prod = torch.mv(W.view(height,-1).data, v_n)
-	singular_value = torch.dot(u_n, prod)
-	return singular_value, u_n, v_n
 
 class SpectralNorm(nn.Module):
-    def __init__(self, module):
+    def __init__(self, module, name='weight', power_iterations=1):
         super(SpectralNorm, self).__init__()
         self.module = module
-        self.u = None
+        self.name = name
+        self.power_iterations = power_iterations
+        self._make_params()
 
-    def _setweights(self):
-        if self.u is None:
-            self.u = self.module.weight.data.new(self.module.weight.size()[0]).normal_(0,1)
-        
-        singular_value, u, _ = spectral_norm(self.module.weight, self.u)
-        self.module.weight.data = self.module.weight.data / singular_value
-        self.u = u
+    def _update_u_v(self):
+        u = getattr(self.module, self.name + "_u")
+        v = getattr(self.module, self.name + "_v")
+        w = getattr(self.module, self.name + "_bar")
+
+        height = w.data.shape[0]
+        for _ in range(self.power_iterations):
+            v.data = l2normalize(torch.mv(torch.t(w.view(height,-1).data), u.data))
+            u.data = l2normalize(torch.mv(w.view(height,-1).data, v.data))
+
+        # sigma = torch.dot(u.data, torch.mv(w.view(height,-1).data, v.data))
+        sigma = u.dot(w.view(height, -1).mv(v))
+        setattr(self.module, self.name, w / sigma.expand_as(w))
+
+
+
+    def _make_params(self):
+        w = getattr(self.module, self.name)
+
+        height = w.data.shape[0]
+        width = w.view(height, -1).data.shape[1]
+
+        u = Parameter(w.data.new(height).normal_(0, 1), requires_grad=False)
+        v = Parameter(w.data.new(width).normal_(0, 1), requires_grad=False)
+        u.data = l2normalize(u.data)
+        v.data = l2normalize(v.data)
+        w_bar = Parameter(w.data)
+
+        del self.module._parameters[self.name]
+
+        self.module.register_parameter(self.name + "_u", u)
+        self.module.register_parameter(self.name + "_v", v)
+        self.module.register_parameter(self.name + "_bar", w_bar)
+
 
     def forward(self, *args):
-        self._setweights()
+        self._update_u_v()
+
+        # print(self.module.weight_bar)
+        # print(len(list(self.module.parameters())))
         return self.module.forward(*args)

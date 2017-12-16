@@ -15,9 +15,9 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.z_dim = z_dim
 
-        self.fc1 = nn.Linear(z_dim, w_g * w_g * 512)
-
         self.model = nn.Sequential(
+            nn.ConvTranspose2d(z_dim, 512, 4, stride=1),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.ConvTranspose2d(512, 256, 4, stride=2, padding=(1,1)),
             nn.BatchNorm2d(256),
@@ -32,9 +32,7 @@ class Generator(nn.Module):
             nn.Tanh())
 
     def forward(self, z):
-        im = self.model(self.fc1(z).view(-1,512,w_g,w_g))
-        l = im.view(-1, channels, width, width)
-        return l
+        return self.model(z.view(-1, self.z_dim, 1, 1))
 
 class Discriminator(nn.Module):
     def __init__(self):
@@ -48,8 +46,25 @@ class Discriminator(nn.Module):
         self.conv6 = SpectralNorm(nn.Conv2d(256, 256, 4, stride=2, padding=(1,1)))
         self.conv7 = SpectralNorm(nn.Conv2d(256, 512, 3, stride=1, padding=(1,1)))
 
+        # self.conv1 = (nn.Conv2d(channels, 64, 3, stride=1, padding=(1,1)))
+        # self.conv2 = (nn.Conv2d(64, 64, 4, stride=2, padding=(1,1)))
+        # self.conv3 = (nn.Conv2d(64, 128, 3, stride=1, padding=(1,1)))
+        # self.conv4 = (nn.Conv2d(128, 128, 4, stride=2, padding=(1,1)))
+        # self.conv5 = (nn.Conv2d(128, 256, 3, stride=1, padding=(1,1)))
+        # self.conv6 = (nn.Conv2d(256, 256, 4, stride=2, padding=(1,1)))
+        # self.conv7 = (nn.Conv2d(256, 512, 3, stride=1, padding=(1,1)))
 
-        self.fc = nn.Linear(w_g * w_g * 512, 1)
+
+        # self.conv1 = SpectralNorm(nn.Conv2d(channels, 64, 3, stride=1, padding=(1,1)))
+        # self.conv2 = SpectralNorm(nn.Conv2d(64, 64, 4, stride=2, padding=(1,1)))
+        # self.conv3 = SpectralNorm(nn.Conv2d(64, 128, 3, stride=1, padding=(1,1)))
+        # self.conv4 = SpectralNorm(nn.Conv2d(128, 128, 4, stride=2, padding=(1,1)))
+        # self.conv5 = SpectralNorm(nn.Conv2d(128, 256, 3, stride=1, padding=(1,1)))
+        # self.conv6 = SpectralNorm(nn.Conv2d(256, 256, 4, stride=2, padding=(1,1)))
+        # self.conv7 = SpectralNorm(nn.Conv2d(256, 512, 3, stride=1, padding=(1,1)))
+
+
+        self.fc = SpectralNorm(nn.Linear(w_g * w_g * 512, 1))
 
     def forward(self, x):
         m = x
