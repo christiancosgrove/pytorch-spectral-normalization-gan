@@ -42,7 +42,7 @@ class SpectralNorm(nn.Module):
         self.module = module
         self.name = name
         self.power_iterations = power_iterations
-        if self._made_params():
+        if not self._made_params():
             self._make_params()
 
     def _update_u_v(self):
