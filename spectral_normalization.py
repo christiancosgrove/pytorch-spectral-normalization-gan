@@ -42,7 +42,8 @@ class SpectralNorm(nn.Module):
         self.module = module
         self.name = name
         self.power_iterations = power_iterations
-        self._make_params()
+        if self._made_params():
+            self._make_params()
 
     def _update_u_v(self):
         u = getattr(self.module, self.name + "_u")
@@ -58,13 +59,17 @@ class SpectralNorm(nn.Module):
         sigma = u.dot(w.view(height, -1).mv(v))
         setattr(self.module, self.name, w / sigma.expand_as(w))
 
+    def _made_params(self):
+        try:
+            u = getattr(self.module, self.name + "_u")
+            v = getattr(self.module, self.name + "_v")
+            w = getattr(self.module, self.name + "_bar")
+            return True
+        except AttributeError:
+            return False
 
 
     def _make_params(self):
-
-        print("making parameters")
-
-        
         w = getattr(self.module, self.name)
 
         height = w.data.shape[0]
