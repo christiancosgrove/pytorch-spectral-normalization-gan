@@ -29,7 +29,8 @@ loader = torch.utils.data.DataLoader(
 
 Z_dim = 128
 
-discriminator = Discriminator().cuda()
+discriminator = torch.nn.DataParallel(Discriminator()).cuda()
+# discriminator = (Discriminator()).cuda()
 generator = Generator(Z_dim).cuda()
 
 optim_disc = optim.Adam(filter(lambda p: p.requires_grad, discriminator.parameters()), lr=args.lr, betas=(0.5,0.999))
