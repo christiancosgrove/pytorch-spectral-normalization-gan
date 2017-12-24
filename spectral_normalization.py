@@ -70,6 +70,10 @@ class SpectralNorm(nn.Module):
 
 
     def _make_params(self):
+
+        print("making parameters")
+
+        
         w = getattr(self.module, self.name)
 
         height = w.data.shape[0]
