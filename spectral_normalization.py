@@ -7,31 +7,6 @@ from torch import nn
 from torch import Tensor
 from torch.nn import Parameter
 
-class SpectralNormOptimizer(Optimizer):
-
-	def __init__(self, params, lr=required):
-		defaults = dict(lr=lr)
-
-		super(SpectralNormOptimizer, self).__init__(params, defaults)
-
-	def step(self, closure=None):
-		loss = None
-		if closure is not None:
-			loss = closure()
-
-		for group in self.param_groups:
-
-			for p in group['params']:
-				if p.grad is None:
-					continue
-
-				d_p = p.grad.data
-				p.data.add_(-group['lr'], d_p)
-
-		return loss
-
-
-
 def l2normalize(v, eps=1e-12):
     return v / (v.norm() + eps)
 
@@ -90,6 +65,8 @@ class SpectralNorm(nn.Module):
         self.module.register_parameter(self.name + "_u", u)
         self.module.register_parameter(self.name + "_v", v)
         self.module.register_parameter(self.name + "_bar", w_bar)
+
+        self.module.
 
 
     def forward(self, *args):
