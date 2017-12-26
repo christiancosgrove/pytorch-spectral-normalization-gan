@@ -45,10 +45,6 @@ class SpectralNorm(nn.Module):
 
 
     def _make_params(self):
-
-        print("making parameters")
-
-        
         w = getattr(self.module, self.name)
 
         height = w.data.shape[0]
@@ -65,8 +61,6 @@ class SpectralNorm(nn.Module):
         self.module.register_parameter(self.name + "_u", u)
         self.module.register_parameter(self.name + "_v", v)
         self.module.register_parameter(self.name + "_bar", w_bar)
-
-        self.module.
 
 
     def forward(self, *args):
