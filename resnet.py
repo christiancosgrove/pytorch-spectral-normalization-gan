@@ -35,6 +35,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+from spectral_normalization import SpectralNorm
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -62,8 +63,8 @@ class BasicBlock(nn.Module):
             out = self.conv1(F.relu(self.bn1(x)))
             out = self.conv2(F.relu(self.bn2(x)))
         else:
-            out = self.conv1(F.relu(x))
-            out = self.conv2(F.relu(x))
+            out = SpectralNorm(self.conv1(F.relu(x)))
+            out = SpectralNorm(self.conv2(F.relu(x)))
         
         return out + self.shortcut(x)
 
