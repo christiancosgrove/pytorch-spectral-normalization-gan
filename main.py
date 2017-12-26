@@ -6,7 +6,6 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 from model import Discriminator, Generator
-from spectral_normalization import SpectralNormOptimizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=64)
