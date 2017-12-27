@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--momentum', type=float, default=0.5)
+parser.add_argument('--checkpoint_dir', type=str, nargs='?', const='checkpoints')
 args = parser.parse_args()
 
 # loader = torch.utils.data.DataLoader(
@@ -88,6 +89,11 @@ def evaluate(epoch):
     plt.savefig('out/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
     plt.close(fig)
 
+os.makedirs(args.checkpoint_dir, exist_ok=True)
+
 for epoch in range(2000):
     train(epoch)
     evaluate(epoch)
+    torch.save(discriminator.state_dict(), os.path.join(args.checkpoint_dir, 'disc_{}'.format(epoch)))
+    torch.save(generator.state_dict(), os.path.join(args.checkpoint_dir, 'gen_{}'.format(epoch)))
+
