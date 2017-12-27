@@ -7,6 +7,15 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 from model import Discriminator, Generator
 
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import os
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=2e-4)
@@ -53,11 +62,6 @@ def train(epoch):
 
         if batch_idx % 100 == 0:
             print('disc loss', disc_loss.data[0], 'gen loss', gen_loss.data[0])
-
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import os
 
 fixed_z = Variable(torch.randn(args.batch_size, Z_dim).cuda())
 def evaluate(epoch):
