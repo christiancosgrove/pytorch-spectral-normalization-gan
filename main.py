@@ -11,15 +11,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--momentum', type=float, default=0.5)
-parser.add_argument('--checkpoint_dir', type=str, nargs='?', const='checkpoints')
+parser.add_argument('--checkpoint_dir', type=str, default='checkpoints')
 args = parser.parse_args()
 
-# loader = torch.utils.data.DataLoader(
-#     datasets.MNIST('../data/', train=True, download=True,
-#         transform=transforms.Compose([
-#             transforms.ToTensor(),
-#             transforms.Normalize((0.5,),(0.5,))])),
-#         batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
 loader = torch.utils.data.DataLoader(
     datasets.CIFAR10('../data/', train=True, download=True,
         transform=transforms.Compose([
