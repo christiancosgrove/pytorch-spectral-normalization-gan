@@ -1,13 +1,10 @@
+# DCGAN-like generator and discriminator
 from torch import nn
 import torch.nn.functional as F
 
 from spectral_normalization import SpectralNorm
 
-width = 32
 channels = 3
-h_dim = 100
-z_dim = 128
-w_g = 4
 leak = 0.1
 
 class Generator(nn.Module):
@@ -46,23 +43,6 @@ class Discriminator(nn.Module):
         self.conv5 = SpectralNorm(nn.Conv2d(128, 256, 3, stride=1, padding=(1,1)))
         self.conv6 = SpectralNorm(nn.Conv2d(256, 256, 4, stride=2, padding=(1,1)))
         self.conv7 = SpectralNorm(nn.Conv2d(256, 512, 3, stride=1, padding=(1,1)))
-
-        # self.conv1 = (nn.Conv2d(channels, 64, 3, stride=1, padding=(1,1)))
-        # self.conv2 = (nn.Conv2d(64, 64, 4, stride=2, padding=(1,1)))
-        # self.conv3 = (nn.Conv2d(64, 128, 3, stride=1, padding=(1,1)))
-        # self.conv4 = (nn.Conv2d(128, 128, 4, stride=2, padding=(1,1)))
-        # self.conv5 = (nn.Conv2d(128, 256, 3, stride=1, padding=(1,1)))
-        # self.conv6 = (nn.Conv2d(256, 256, 4, stride=2, padding=(1,1)))
-        # self.conv7 = (nn.Conv2d(256, 512, 3, stride=1, padding=(1,1)))
-
-
-        # self.conv1 = SpectralNorm(nn.Conv2d(channels, 64, 3, stride=1, padding=(1,1)))
-        # self.conv2 = SpectralNorm(nn.Conv2d(64, 64, 4, stride=2, padding=(1,1)))
-        # self.conv3 = SpectralNorm(nn.Conv2d(64, 128, 3, stride=1, padding=(1,1)))
-        # self.conv4 = SpectralNorm(nn.Conv2d(128, 128, 4, stride=2, padding=(1,1)))
-        # self.conv5 = SpectralNorm(nn.Conv2d(128, 256, 3, stride=1, padding=(1,1)))
-        # self.conv6 = SpectralNorm(nn.Conv2d(256, 256, 4, stride=2, padding=(1,1)))
-        # self.conv7 = SpectralNorm(nn.Conv2d(256, 512, 3, stride=1, padding=(1,1)))
 
 
         self.fc = SpectralNorm(nn.Linear(w_g * w_g * 512, 1))
