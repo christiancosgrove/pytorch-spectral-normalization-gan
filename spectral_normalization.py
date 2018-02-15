@@ -65,7 +65,4 @@ class SpectralNorm(nn.Module):
 
     def forward(self, *args):
         self._update_u_v()
-
-        # print(self.module.weight_bar)
-        # print(len(list(self.module.parameters())))
         return self.module.forward(*args)
