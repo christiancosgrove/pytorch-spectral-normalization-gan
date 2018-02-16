@@ -86,7 +86,7 @@ class ResBlockDiscriminator(nn.Module):
 class FirstResBlockDiscriminator(nn.Module):
 
     def __init__(self, in_channels, out_channels, stride=1):
-        super(OptimizedResBlockDiscriminator, self).__init__()
+        super(FirstResBlockDiscriminator, self).__init__()
 
         self.conv1 = nn.Conv2d(in_channels, out_channels, 3, 1, padding=1)
         self.conv2 = nn.Conv2d(out_channels, out_channels, 3, 1, padding=1)
