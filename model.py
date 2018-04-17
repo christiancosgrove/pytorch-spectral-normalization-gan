@@ -6,6 +6,7 @@ from spectral_normalization import SpectralNorm
 
 channels = 3
 leak = 0.1
+w_g = 4
 
 class Generator(nn.Module):
     def __init__(self, z_dim):
